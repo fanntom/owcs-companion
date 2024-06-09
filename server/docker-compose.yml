@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: owcs_db
+    environment:
+      POSTGRES_USER: owcs_user
+      POSTGRES_PASSWORD: owcs_password
+      POSTGRES_DB: owcs_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      DB_VENDOR: POSTGRES
+      DB_ADDR: db
+      DB_DATABASE: keycloak
+      DB_USER: owcs_user
+      DB_PASSWORD: owcs_password
+    command: ["start-dev"]
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  postgres_data:
+  keycloak_data:
+
+networks:
+  default:
+    driver: bridge
